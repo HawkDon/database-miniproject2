@@ -72,7 +72,84 @@ setup(function (mongoClient, redisClient, documents) {
     });
     Promise.all([putOneDocumentIntoRedis, putOneDocumentIntoMongoDB]).then(
       function () {
-        console.log("next one");
+        newDocument.release_year = "4. September 2008";
+        console.log("---------------------------------------");
+        console.log("Update one document");
+        console.log("---------------------------------------");
+        var updateOneDocumentFromRedis = new Promise(function (resolve) {
+          redisClient.hmset(newDocument._id, newDocument, function (
+            err,
+            result
+          ) {
+            var end = new Date() - start;
+            console.log(
+              "It took redis: " +
+                end +
+                " milliseconds to update data into the store"
+            );
+            resolve();
+          });
+        });
+        var updateOneDocumentFromMongoDB = new Promise(function (resolve) {
+          mongoClient
+            .db("movies")
+            .collection("documents")
+            .updateOne(
+              { _id: newDocument._id },
+              { $set: { release_year: "4. September 2008" } },
+              function (err, result) {
+                var end = new Date() - start;
+                console.log(
+                  "It took MongoDB: " +
+                    end +
+                    " milliseconds to update data into the database"
+                );
+                resolve();
+              }
+            );
+        });
+
+        Promise.all([
+          updateOneDocumentFromRedis,
+          updateOneDocumentFromMongoDB,
+        ]).then(function () {
+          console.log("---------------------------------------");
+          console.log("Delete one document");
+          console.log("---------------------------------------");
+          var deleteOneDocumentFromRedis = new Promise(function (resolve) {
+            redisClient.del(newDocument._id, function (err) {
+              var end = new Date() - start;
+              console.log(
+                "It took redis: " +
+                  end +
+                  " milliseconds to delete data from the store"
+              );
+              resolve();
+            });
+          });
+          var deleteOneDocumentFromMongoDB = new Promise(function (resolve) {
+            mongoClient
+              .db("movies")
+              .collection("documents")
+              .deleteOne({ _id: newDocument._id }, function (err, result) {
+                var end = new Date() - start;
+                console.log(
+                  "It took MongoDB: " +
+                    end +
+                    " milliseconds to delete data from the database"
+                );
+                resolve();
+              });
+          });
+          Promise.all([
+            deleteOneDocumentFromRedis,
+            deleteOneDocumentFromMongoDB,
+          ]).then(function () {
+            // Close connections
+            mongoClient.close();
+            redisClient.quit();
+          });
+        });
       }
     );
   });
