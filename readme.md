@@ -1,3 +1,11 @@
+## Database setup for docker:
+
+Mongodb:
+docker run -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password -e MONGO_INITDB_DATABASE=movies --name mongodb -d mongo
+
+Redis:
+docker run --name redis -p 6379:6379 -d redis
+
 ## Performance Measurement
 
 ### Create
