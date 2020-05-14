@@ -27,3 +27,8 @@ It took MongoDB: 11 milliseconds to update data into the database
 
 It took redis: 14 milliseconds to delete data from the store
 It took MongoDB: 15 milliseconds to delete data from the database
+
+### Storage usages
+
+Redis takes up: 8.37 MB from your RAMs
+MongoDB takes up: 1,978368 MB from your harddisk

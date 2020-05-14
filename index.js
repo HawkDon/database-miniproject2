@@ -145,9 +145,45 @@ setup(function (mongoClient, redisClient, documents) {
             deleteOneDocumentFromRedis,
             deleteOneDocumentFromMongoDB,
           ]).then(function () {
-            // Close connections
-            mongoClient.close();
-            redisClient.quit();
+            var redisHumanMemory = new Promise(function (resolve) {
+              redisClient.info(function (req, res) {
+                var result = res.split("\n").filter(function (line) {
+                  if (/used_memory_human/.test(line)) {
+                    return line;
+                  }
+                });
+                var size = result[0]
+                  .split("used_memory_human:")[1]
+                  .split("M")[0];
+                resolve(Number(size));
+              });
+            });
+            var mongodbHumanMemory = new Promise(function (resolve) {
+              var storage = mongoClient
+                .db("movies")
+                .collection("documents")
+                .stats();
+              storage.then(function (result) {
+                var size = result.storageSize / 1000 / 1000; // MB
+                resolve(size);
+              });
+            });
+
+            Promise.all([redisHumanMemory, mongodbHumanMemory]).then(function (
+              result
+            ) {
+              console.log("---------------------------------------");
+              console.log("Storage usages: ");
+              console.log("---------------------------------------");
+              console.log(
+                "Redis takes up: " + result[0] + " MB from your RAMs"
+              );
+              console.log(
+                "MongoDB takes up: " + result[1] + " MB from your harddisk"
+              );
+              mongoClient.close();
+              redisClient.quit();
+            });
           });
         });
       }

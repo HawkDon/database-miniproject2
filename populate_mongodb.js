@@ -1,5 +1,8 @@
 var mongo = require("mongodb");
-var mongoClient = mongo.MongoClient("mongodb://admin:password@localhost:27017");
+var mongoClient = mongo.MongoClient(
+  "mongodb://admin:password@localhost:27017",
+  { useUnifiedTopology: true }
+);
 var csvData = require("./csv_converter");
 
 // show_id,type,title,director,cast,country,date_added,release_year,rating,duration,listed_in,description
