@@ -159,14 +159,18 @@ setup(function (mongoClient, redisClient, documents) {
               });
             });
             var mongodbHumanMemory = new Promise(function (resolve) {
-              var storage = mongoClient
-                .db("movies")
-                .collection("documents")
-                .stats();
-              storage.then(function (result) {
-                var size = result.storageSize / 1000 / 1000; // MB
-                resolve(size);
-              });
+              // Mongodb seems to not update its collection storage size on the fly,
+              // so we wait a bit before calling it
+              setTimeout(function () {
+                var storage = mongoClient
+                  .db("movies")
+                  .collection("documents")
+                  .stats();
+                storage.then(function (result) {
+                  var size = result.storageSize / 1000 / 1000; // MB
+                  resolve(size);
+                });
+              }, 10000);
             });
 
             Promise.all([redisHumanMemory, mongodbHumanMemory]).then(function (
